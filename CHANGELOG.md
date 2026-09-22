@@ -4,6 +4,20 @@ All notable changes to the **Asset Template Explorer**.
 
 ---
 
+## [1.0.2] — 2026-09-22
+
+### 🔑 Highlights
+- A version number is now visible directly in the app, so you can always tell which build you're running
+- Fixed a bug where a tree branch could stop responding to clicks and need a page refresh to recover
+
+### ✨ Added
+- **Version badge** — small, fixed label in the bottom-left corner showing the current version (e.g. `v1.0.2`), visible from every view
+
+### 🐛 Fixed
+- **A tree branch could stop expanding/collapsing**, especially after uploading your own files (rather than the sample), requiring a refresh and re-upload to recover. Caused by a timing issue where uploading files could attach a duplicate click handler to the tree, so every click fired twice and canceled itself out. Fixed by ensuring the tree's click handling is only ever set up once, no matter how the files are loaded.
+
+---
+
 ## [1.0.1] — 2026-09-22
 
 ### 🔑 Highlights
