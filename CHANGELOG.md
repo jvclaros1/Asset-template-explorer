@@ -4,6 +4,13 @@ All notable changes to the **Asset Template Explorer**.
 
 ---
 
+## [1.3.1] — 2026-10-14
+
+### 🔄 Changed
+- Upload page: removed the "3 files" / "1 file" labels from the Builder / Editor mode switch
+
+---
+
 ## [1.3.0] — 2026-10-13
 
 ### 🔑 Highlights

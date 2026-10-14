@@ -1,4 +1,4 @@
-# Asset Template Explorer — v1.3.0
+# Asset Template Explorer — v1.3.1
 
 An internal tool for business analysts to import, browse, edit, and export asset templates. It has two modes:
 
@@ -118,6 +118,7 @@ Editor works on a Workzone asset data export (Spaces file, `AssetData*.xlsx`), f
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.3.1 | 2026-10-14 | Removed the file-count labels from the mode switch |
 | 1.3.0 | 2026-10-13 | Session history panel with CSV export, Show deleted items switch, delete/hide warnings for parents, spaces can't be deleted |
 | 1.2.0 | 2026-10-13 | Export preview, Undo/Ctrl+Z, formatting-safe Builder exports, path-safe renames and deletes, auto-lock, new sidebar header, keyboard and contrast fixes |
 | 1.1.0 | 2026-10-10 | Editor mode for deployed spaces (Spaces file) |

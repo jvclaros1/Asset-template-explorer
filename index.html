@@ -652,7 +652,6 @@
     font-family: var(--font-sans); font-size:13px; font-weight:600; color: var(--text-muted);
     background:none; border:none; border-radius:6px; padding:8px 14px; cursor:pointer;
   }
-  .mode-switch button .sub{ font-family: var(--font-mono); font-size:10.5px; font-weight:500; margin-left:6px; }
   .mode-switch button.active{ background: var(--accent); color:var(--on-accent); }
   .mode-panel[hidden]{ display:none; }
   .upload-grid.two{ grid-template-columns: repeat(2, 1fr); }
@@ -825,8 +824,8 @@
     <h1>Asset Template Explorer</h1>
 
     <div class="mode-switch" role="tablist" aria-label="Mode">
-      <button type="button" data-mode="baseline" class="active" role="tab" id="tab-baseline" aria-selected="true" aria-controls="panel-baseline">Builder<span class="sub">3 files</span></button>
-      <button type="button" data-mode="spaces" role="tab" id="tab-spaces" aria-selected="false" aria-controls="panel-spaces" tabindex="-1">Editor<span class="sub">1 file</span></button>
+      <button type="button" data-mode="baseline" class="active" role="tab" id="tab-baseline" aria-selected="true" aria-controls="panel-baseline">Builder</button>
+      <button type="button" data-mode="spaces" role="tab" id="tab-spaces" aria-selected="false" aria-controls="panel-spaces" tabindex="-1">Editor</button>
     </div>
 
     <div class="mode-panel" id="panel-baseline" role="tabpanel" aria-labelledby="tab-baseline">
@@ -1265,7 +1264,7 @@ window.ATEHistory = (function(){
 
   // ---------------- shared state ----------------
   var STATE = { asset: null, model: null, task: null };
-  var APP_VERSION = '1.3.0';
+  var APP_VERSION = '1.3.1';
   var CURRENT = null; // { tree, models, tasks, nodeIndex }
   var selectedNode = null;
   var changesCount = 0;
