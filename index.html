@@ -100,6 +100,27 @@
     display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer;
   }
   .hist-btn:hover{ background: var(--bg-hover); }
+  /* ---------- Export icon (Builder / Editor tree pages) ---------- */
+  .xpt-wrap{ position:fixed; top:16px; right:98px; z-index:41; display:none; }
+  body:has(#explorer-view.active) .xpt-wrap, body:has(#ed-explorer-view.active) .xpt-wrap{ display:block; }
+  .xpt-btn{
+    width:32px; height:32px; border-radius:6px; border:1px solid var(--border); background: var(--bg-raised); color: var(--text);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
+  }
+  .xpt-btn:hover{ background: var(--bg-hover); }
+  .xpt-btn svg{ width:16px; height:16px; }
+  .xpt-menu{ min-width:190px; z-index:45; }
+  body.hist-pinned .xpt-wrap{ right:calc(var(--hist-w) + 98px); }
+  .xpt-toast{
+    position:fixed; top:58px; right:16px; z-index:75; max-width:340px; padding:9px 12px; border-radius:8px;
+    background: var(--bg-raised); border:1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    font-size:12.5px; color: var(--text);
+  }
+  .xpt-toast.err{ border-color: var(--danger); color: var(--danger); }
+  .xpt-toast[hidden]{ display:none; }
+  body.hist-pinned .xpt-toast{ right:calc(var(--hist-w) + 16px); }
+  #explorer-view .tree-header .split-btn, #ed-explorer-view .tree-header .split-btn,
+  #export-note, #ed-export-note{ display:none; }
   .hist-btn svg{ width:16px; height:16px; }
   .hist-badge{ font-family: var(--font-mono); font-size:10.5px; font-weight:600; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background: var(--accent); color: var(--on-accent); display:inline-flex; align-items:center; justify-content:center; }
   .hist-badge[hidden]{ display:none; }
@@ -722,14 +743,16 @@
   .preview-breadcrumb .crumb.fixed{ cursor:default; }
 
   .select-bar{
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px;
+    display:flex; flex-direction:column; gap:8px; margin-top:10px;
     padding:8px 10px; border:1px solid var(--accent); border-radius:6px;
     background: color-mix(in srgb, var(--accent) 8%, transparent);
     font-size:12.5px; color: var(--text);
   }
   .select-bar[hidden]{ display:none; }
   .select-bar .count{ font-family: var(--font-mono); font-weight:600; }
-  .select-bar .hint{ flex-basis:100%; font-size:11px; color: var(--text-muted); }
+  .select-bar .sb-top{ display:flex; align-items:center; justify-content:space-between; }
+  .select-bar .sb-btns{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .select-bar .hint{ font-size:11px; color: var(--text-muted); }
   .btn.active-toggle{ border-color: var(--accent); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent); }
   .sel-box{
     flex-shrink:0; width:15px; height:15px; margin:2px 2px 0 0; border:1.5px solid var(--text-muted);
@@ -802,6 +825,8 @@
 <div class="version-badge" id="version-badge"></div>
 
 <button class="hist-btn" id="hist-btn" type="button" aria-label="Session history" aria-expanded="false" title="Session history"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.25" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4.2l2.8 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<div class="xpt-wrap" id="xpt-wrap"><button class="xpt-btn split-caret" id="xpt-btn" type="button" aria-label="Export" aria-haspopup="true" aria-expanded="false" title="Export"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3.5v9M6.2 9l3.8 3.8L13.8 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 13.5v2.25c0 .41.34.75.75.75h10.5c.41 0 .75-.34.75-.75V13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><div class="menu-dropdown hdr-menu xpt-menu" id="xpt-menu" role="menu" hidden></div></div>
+<div class="xpt-toast" id="xpt-toast" role="status" aria-live="polite" hidden></div>
 <aside class="hist-panel" id="hist-panel" hidden aria-label="Session history">
   <div class="hist-resize" id="hist-resize" role="separator" aria-orientation="vertical" aria-label="Resize history panel" aria-valuemin="260" aria-valuemax="640" aria-valuenow="340" tabindex="0" title="Drag to resize"></div>
   <div class="hist-head">
@@ -1087,10 +1112,11 @@
         </div>
         <span class="changes-indicator" id="ed-changes-indicator" hidden></span>
         <div class="select-bar" id="select-bar" hidden>
-          <span><span class="count" id="select-count">0</span> selected</span>
-          <button class="btn" id="bulk-move" type="button" disabled>Move selected</button>
-          <button class="btn danger" id="bulk-delete" type="button" disabled>Delete selected</button>
-          <button class="btn-ghost" id="select-clear" type="button">Clear</button>
+          <div class="sb-top"><span><span class="count" id="select-count">0</span> selected</span><button class="btn-ghost" id="select-clear" type="button">Clear</button></div>
+          <div class="sb-btns">
+            <button class="btn" id="bulk-move" type="button" disabled>Move selected</button>
+            <button class="btn danger" id="bulk-delete" type="button" disabled>Delete selected</button>
+          </div>
           <span class="hint">Shift+click ticks a range. Spaces and locked models can&rsquo;t be selected.</span>
         </div>
         <p class="export-note" id="ed-export-note"></p>
@@ -1264,7 +1290,7 @@ window.ATEHistory = (function(){
 
   // ---------------- shared state ----------------
   var STATE = { asset: null, model: null, task: null };
-  var APP_VERSION = '1.3.1';
+  var APP_VERSION = '1.3.2';
   var CURRENT = null; // { tree, models, tasks, nodeIndex }
   var selectedNode = null;
   var changesCount = 0;
@@ -2503,8 +2529,7 @@ window.ATEHistory = (function(){
       return zip.generateAsync({type:'blob'});
       }).then(function(blob){
         downloadsCap.save({ filename: 'asset-template-export.zip', data: blob }).then(function(){
-          setExportNote('', false);
-          var xn = document.getElementById('xp-note'); if (xn) xn.textContent = 'Exported \u2014 asset-template-export.zip (all 3 files).';
+          setExportNote('Exported \u2014 asset-template-export.zip (all 3 files).', false);
           exportEpoch++; changesCount = 0; justExported = true; updateChangesIndicator();
           ATEHistory.markExported('builder');
         }).catch(function(err){
@@ -2568,6 +2593,60 @@ window.ATEHistory = (function(){
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape') ['b-more-menu', 'export-more-menu', 'ed-more-menu', 'ed-export-more-menu'].forEach(function(id){ var m = document.getElementById(id); if (m) m.hidden = true; });
   });
+
+  // ---------------- Export icon (top right) ----------------
+  (function(){
+    var btn = document.getElementById('xpt-btn'), menu = document.getElementById('xpt-menu'), toast = document.getElementById('xpt-toast');
+    function sources(){
+      var ed = document.getElementById('ed-explorer-view').classList.contains('active');
+      var main = document.getElementById(ed ? 'ed-export-btn' : 'export-btn');
+      var more = document.getElementById(ed ? 'ed-export-more-menu' : 'export-more-menu');
+      return [main].concat(Array.prototype.slice.call(more.querySelectorAll('button.menu-item')));
+    }
+    function build(){
+      menu.innerHTML = '';
+      sources().forEach(function(src){
+        var it = document.createElement('button');
+        it.type = 'button'; it.className = 'menu-item'; it.setAttribute('role', 'menuitem');
+        it.textContent = src.textContent.trim(); it.disabled = src.disabled;
+        if (src.title) it.title = src.title;
+        it.addEventListener('click', function(){ menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); src.click(); });
+        menu.appendChild(it);
+      });
+    }
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = menu.hidden;
+      document.querySelectorAll('.menu-dropdown').forEach(function(dd){ dd.hidden = true; });
+      if (open) build();
+      menu.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    btn.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown'){
+        e.preventDefault(); if (menu.hidden) btn.click();
+        var first = menu.querySelector('button.menu-item:not([disabled])'); if (first) first.focus();
+      }
+    });
+    new MutationObserver(function(){ if (menu.hidden) btn.setAttribute('aria-expanded', 'false'); }).observe(menu, { attributes:true, attributeFilter:['hidden'] });
+    // Export messages (done / errors) show as a brief pop-up under the icons
+    var timer = null;
+    function show(note){
+      var msg = note.textContent.trim();
+      if (!note.closest('.view.active')) return;
+      if (!msg){ toast.hidden = true; return; }
+      toast.textContent = msg;
+      toast.classList.toggle('err', /danger/.test(note.style.color));
+      toast.hidden = false;
+      clearTimeout(timer); timer = setTimeout(function(){ toast.hidden = true; }, 6000);
+    }
+    ['export-note', 'ed-export-note'].forEach(function(id){
+      var note = document.getElementById(id);
+      new MutationObserver(function(){ show(note); }).observe(note, { childList:true, characterData:true, subtree:true });
+    });
+    toast.addEventListener('click', function(){ toast.hidden = true; });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !menu.hidden){ menu.hidden = true; if (document.activeElement === btn || menu.contains(document.activeElement)) btn.focus(); } });
+  })();
 
   // ---------------- mobile + theme ----------------
   document.addEventListener('click', function(){
@@ -3530,8 +3609,6 @@ window.ATEHistory = (function(){
     $('select-count').textContent = c;
     $('bulk-delete').disabled = c === 0;
     $('bulk-move').disabled = c === 0;
-    $('bulk-move').textContent = c ? 'Move ' + c + ' selected' : 'Move selected';
-    $('bulk-delete').textContent = c ? 'Delete ' + c + ' selected' : 'Delete selected';
   }
   function setSelectMode(on){
     selectMode = on; lastPick = null; if (!on) picked = {};

@@ -1,4 +1,4 @@
-# Asset Template Explorer — v1.3.1
+# Asset Template Explorer — v1.3.2
 
 An internal tool for business analysts to import, browse, edit, and export asset templates. It has two modes:
 
@@ -27,7 +27,7 @@ No backend. No install. Just open `index.html` in any modern browser.
 - Hiding a model that has items under it warns that they'll disappear from Click Preview too
 - Warnings when a change affects a model that's used in more than one place
 - **Export** — a zip of the three files in their original format (headers, colours, frozen rows, extra sheets kept)
-- **Export click model** (in the Export ▾ menu) — flattened click paths with an `isVisible` column
+- **Export click model** (in the Export menu — download icon, top right) — flattened click paths with an `isVisible` column
 
 ### Editor
 - Tree of property › spaces › assets, with tags for **NEW**, **MOVED**, **RENAMED** and **Locked** items
@@ -40,7 +40,7 @@ No backend. No install. Just open `index.html` in any modern browser.
 - **Click Preview** — a clickable simulation of the end-user request flow (Equipment and Recurring excluded), with breadcrumb and slide animations
 - **Export preview** — the file exactly as it will be exported, opening on the changed rows (old value crossed out above the new one) with summary counts and an Export button
 - **Undo** (button or **Ctrl+Z / Cmd+Z**) and **Escape** to cancel an edit
-- **Session history** — the clock button (top right) opens a panel listing every action with its status (Not exported / Exported / Undone / No file change) and a status line at the top; click an entry to jump to the item; pin it to the right side and resize it; **Export history** downloads a CSV (Exported, Description, Time) — also in the Export ▾ menu
+- **Session history** — the clock button (top right) opens a panel listing every action with its status (Not exported / Exported / Undone / No file change) and a status line at the top; click an entry to jump to the item; pin it to the right side and resize it; **Export history** downloads a CSV (Exported, Description, Time) — also in the Export menu (download icon, top right)
 - **Show deleted items** switch — off by default, hides deleted items (and everything under a deleted parent) from the tree
 - **Safety prompts** — red confirm for deletes, confirm before Start over with unexported changes, and a warning when closing the tab
 - **Naming rules** — new names use letters, numbers and spaces only; duplicate names on the same path are allowed after a confirmation
@@ -118,6 +118,7 @@ Editor works on a Workzone asset data export (Spaces file, `AssetData*.xlsx`), f
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.3.2 | 2026-10-15 | Export moved to an icon next to History, export messages as pop-ups, fixed multi-select bar layout, drawn ⋯/⋮ icons |
 | 1.3.1 | 2026-10-14 | Removed the file-count labels from the mode switch |
 | 1.3.0 | 2026-10-13 | Session history panel with CSV export, Show deleted items switch, delete/hide warnings for parents, spaces can't be deleted |
 | 1.2.0 | 2026-10-13 | Export preview, Undo/Ctrl+Z, formatting-safe Builder exports, path-safe renames and deletes, auto-lock, new sidebar header, keyboard and contrast fixes |

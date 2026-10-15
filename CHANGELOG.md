@@ -4,6 +4,19 @@ All notable changes to the **Asset Template Explorer**.
 
 ---
 
+## [1.3.2] — 2026-10-15
+
+### 🔄 Changed
+- **Export moved to the top right** — an Export icon now sits next to History and light/dark (order: Export, History, light/dark) on the Builder and Editor tree pages. It opens a small menu with that mode's export options (Builder: Export, Export click model, Export history; Editor: Export, Export history). The Export button and ▾ menu are removed from the sidebar
+- Export messages ("Preparing files…", "Exported — …", errors) and undo notes now show as a brief pop-up under the top-right icons; Builder now also confirms a successful export
+- Editor multi-select bar has a fixed layout: count and Clear on top, **Move selected** / **Delete selected** as two equal buttons below; labels no longer change with the count
+
+### 🐛 Fixed
+- Editor multi-select bar buttons shifted and wrapped unevenly when items were selected
+- The ⋯ and ⋮ menu buttons could look like dashes on some computers — they are now drawn icons; the ⋯ button matches the height of the Undo button
+
+---
+
 ## [1.3.1] — 2026-10-14
 
 ### 🔄 Changed
