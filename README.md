@@ -1,4 +1,4 @@
-# Asset Template Explorer — v1.3.2
+# Asset Template Explorer — v1.4.0
 
 An internal tool for business analysts to import, browse, edit, and export asset templates. It has two modes:
 
@@ -12,7 +12,7 @@ No backend. No install. Just open `index.html` in any modern browser.
 ## Features
 
 ### Upload screen
-- Switch between **Builder** (3 files) and **Editor** (1 file) with the tabs at the top
+- Switch between **Builder** and **Editor** with the tabs at the top
 - **Builder:** upload the Asset, Model and Task Template files, then click **Proceed** — or load the embedded sample baseline
 - **Editor:** upload the Spaces file (required) and, optionally, the instance's Model Template, then click **Proceed**
 - Files are checked on upload; a wrong file type is rejected with a message
@@ -21,13 +21,14 @@ No backend. No install. Just open `index.html` in any modern browser.
 - Collapsible asset hierarchy tree with a count on each folder
 - Asset page shows the **model** and its **tasks** (with priority and NTE)
 - **Rename** assets in place — the Path of every row underneath updates automatically
-- **Edit task text** in place
-- **Hide / unhide** a model or task (kept in the data, removed from Click Preview) and **delete / restore** via the ⋮ menus
-- **Deleting a parent deletes everything under it** (with a confirm listing what will be deleted); its children are locked until the parent is restored
-- Hiding a model that has items under it warns that they'll disappear from Click Preview too
-- Warnings when a change affects a model that's used in more than one place
-- **Export** — a zip of the three files in their original format (headers, colours, frozen rows, extra sheets kept)
-- **Export click model** (in the Export menu — download icon, top right) — flattened click paths with an `isVisible` column
+- **Edit task text** in place; **Edit NTE** (whole numbers) and **Edit Priority** (priorities used in the Task file) from the task ⋮ menu
+- **Sidebar ⋮ — Delete / Restore** changes the Asset Template only; **deleting a parent deletes everything under it** (with a confirm listing what will be deleted) and its children are locked until the parent is restored
+- **Model ⋮ on the asset page** — **Hide / Unhide model** (Public in the Model file), **Delete / Restore model** (Action in the Model file only; asks first if the model is used in more than one place) and **Delete / Restore on Asset Template**
+- Hidden or deleted models, and everything under them, don't show in Click Preview
+- **Hide / delete / restore tasks** from the task ⋮ menu
+- Restoring a row that was Delete in the original file sets its Action to **Add**
+- **Export** — a zip of the three files with the standard formatting (blue header, grey required/optional row, frozen top rows, column widths); extra sheets kept
+- **Export click model** (in the Export menu — download icon, top right) — flattened click paths for exactly what Click Preview shows
 
 ### Editor
 - Tree of property › spaces › assets, with tags for **NEW**, **MOVED**, **RENAMED** and **Locked** items
@@ -38,9 +39,9 @@ No backend. No install. Just open `index.html` in any modern browser.
 
 ### Both modes
 - **Click Preview** — a clickable simulation of the end-user request flow (Equipment and Recurring excluded), with breadcrumb and slide animations
-- **Export preview** — the file exactly as it will be exported, opening on the changed rows (old value crossed out above the new one) with summary counts and an Export button
+- **Export preview** — the file exactly as it will be exported, opening on the changed rows (old value crossed out above the new one) with summary counts and an Export button; Builder has **Asset Template / Model / Task** tabs; columns have vertical lines and can be resized
 - **Undo** (button or **Ctrl+Z / Cmd+Z**) and **Escape** to cancel an edit
-- **Session history** — the clock button (top right) opens a panel listing every action with its status (Not exported / Exported / Undone / No file change) and a status line at the top; click an entry to jump to the item; pin it to the right side and resize it; **Export history** downloads a CSV (Exported, Description, Time) — also in the Export menu (download icon, top right)
+- **Session history** — the clock button (top right) opens a panel listing every action with its status (Not exported / Exported / Undone / No file change) and a status line at the top; click an entry to jump to the item (it flashes briefly; on Click Preview, renamed items open there); pin it to the right side and resize it; **Export history** downloads a CSV (Exported, Description, Time) — also in the Export menu (download icon, top right)
 - **Show deleted items** switch — off by default, hides deleted items (and everything under a deleted parent) from the tree
 - **Safety prompts** — red confirm for deletes, confirm before Start over with unexported changes, and a warning when closing the tab
 - **Naming rules** — new names use letters, numbers and spaces only; duplicate names on the same path are allowed after a confirmation
@@ -118,6 +119,7 @@ Editor works on a Workzone asset data export (Spaces file, `AssetData*.xlsx`), f
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.4.0 | 2026-10-16 | Export preview tabs for all three files, Model ⋮ menu on the asset page, Edit NTE / Priority, standard export formatting, History highlight, new sample baseline |
 | 1.3.2 | 2026-10-15 | Export moved to an icon next to History, export messages as pop-ups, fixed multi-select bar layout, drawn ⋯/⋮ icons |
 | 1.3.1 | 2026-10-14 | Removed the file-count labels from the mode switch |
 | 1.3.0 | 2026-10-13 | Session history panel with CSV export, Show deleted items switch, delete/hide warnings for parents, spaces can't be deleted |

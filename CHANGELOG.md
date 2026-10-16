@@ -4,6 +4,49 @@ All notable changes to the **Asset Template Explorer**.
 
 ---
 
+## [1.4.0] — 2026-10-16
+
+### 🔑 Highlights
+- **Export preview for all three Builder files** — Asset Template, Model and Task tabs, with resizable columns
+- **Model actions on the asset page** — the Model line has its own ⋮ menu: Hide model, Delete model (Model file) and Delete on Asset Template
+- **Edit NTE and Priority** of a task
+- **Standard formatting on every export**, including exports from the sample baseline
+- **History highlights** the item you jump to, and works on Click Preview
+
+### ✨ Added
+**Builder**
+- Export preview has **Asset Template / Model / Task** tabs, each with its number of changed rows. Model and Task show their main columns plus any column that changed
+- Asset page **Model ⋮ menu** (right edge, lined up with the task ⋮ buttons):
+  - **Hide model / Unhide model** — Public = No / Yes in the Model file
+  - **Delete model / Restore model** — Action = Delete in the Model file only (tasks and Asset Template rows are not changed). If the model is used in more than one place, a pop-up lists the places and asks before going ahead. A deleted model's places don't show in Click Preview
+  - **Delete on Asset Template / Restore on Asset Template** — same as the sidebar Delete
+- Task ⋮ menu: **Edit NTE** (whole numbers, 0 or more) and **Edit Priority** (a list of the priorities used in the Task file)
+
+**Both modes**
+- Export preview columns have **vertical lines** and can be **resized** by dragging a column edge (or ← / → on it); widths are kept for the session
+- **History jump highlight** — the item you jump to (sidebar row, or the task on the asset page) flashes briefly; deleted items aren't highlighted
+- **History on Click Preview** — a Renamed model or task opens its place in the preview and flashes; other entries do nothing there
+
+### 🔄 Changed
+- **Every export uses the standard format**: blue header with white bold text, grey required/optional row, top two rows frozen, column widths (from the uploaded file, or the baseline widths for the sample)
+- Sample baseline updated to the new Model and Task baseline files (IDs blank)
+- Sample-baseline Model export and the Model tab use the **Export** sheet (+ Field Explanations). An uploaded Model file's *Regular Asset only* sheet is still kept in sync
+- Sidebar ⋮ menu is now just **Delete / Restore**, and only changes the Asset Template; **Hide model** moved to the asset page
+- **Click model export** lists only what Click Preview shows; the isVisible column is removed
+- History: task text changes are listed as **Renamed task**
+- Unhiding a model always sets Public = Yes; unhiding a task always sets RS = 1 (also for items hidden in the original file)
+- Restoring a row that was already Delete in the original file sets its Action to **Add**
+
+### 🐛 Fixed
+- Exports made from the sample baseline had no formatting
+- A model already marked Delete in an uploaded file was treated as not deleted
+- The ⋯ / ⋮ drawn icons listed in 1.3.2 were missing from that release; they're included now
+- Asset page ⋮ menus: ↓ now moves into the menu and Escape closes it
+- A selected hidden model's name in the sidebar was slightly too faint to read
+- Delete pop-up buttons stay clear of long lists
+
+---
+
 ## [1.3.2] — 2026-10-15
 
 ### 🔄 Changed
