@@ -65,25 +65,9 @@ Asset template viewer/
 
 ## How to Use
 
-### Option A — Open locally
+### Open locally
 1. Open `index.html` in a modern browser (Chrome, Edge, Firefox)
 2. An internet connection is needed when the page first loads (the spreadsheet libraries and fonts load from a CDN); all file processing runs in the browser
-
-### Option B — Host on Netlify
-1. Go to [netlify.com](https://netlify.com)
-2. Drag `index.html` into the deploy drop zone
-3. Share the generated URL with your team
-
----
-
-## How to Update
-
-1. Open the **Asset Template Maker** Claude Project
-2. Request changes (new features, fixes, data updates)
-3. Replace `index.html` in this folder with the updated file and add an entry to `CHANGELOG.md`
-4. Commit and push — Netlify auto-deploys
-
----
 
 ## Source Data
 
