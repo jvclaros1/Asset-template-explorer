@@ -1,4 +1,4 @@
-# Asset Template Explorer — v1.4.0
+# Asset Template Explorer — v1.4.1
 
 An internal tool for business analysts to import, browse, edit, and export asset templates. It has two modes:
 
@@ -31,20 +31,20 @@ No backend. No install. Just open `index.html` in any modern browser.
 - **Export click model** (in the Export menu — download icon, top right) — flattened click paths for exactly what Click Preview shows
 
 ### Editor
-- Tree of property › spaces › assets, with tags for **NEW**, **MOVED**, **RENAMED** and **Locked** items
-- **Rename**, **Add asset** (model required; searchable list when a Model Template is loaded), **Move to…** (within the same space), **Delete / Restore** — spaces themselves can't be renamed or deleted
+- Tree of property › spaces › assets, with tags for **NEW**, **MOVED** and **Locked** items
+- **Rename**, **Add asset** (model required; searchable list when a Model Template is loaded), **Move to…** (pick the new location from a tree of the same space), **Delete / Restore** — spaces themselves can't be renamed or deleted
 - **Multi-select** to delete or move several models at once (Shift+click for a range, "Select all" on an open branch)
 - **Lock / Unlock** — Recurring and Engineering models, and Equipment next to Recurring, are locked automatically when the file loads
 - **Export** — the full Spaces file in its original format: original rows (renames as Update) → Delete rows → Add rows; moved items are deleted and re-added with every original value
 
 ### Both modes
 - **Click Preview** — a clickable simulation of the end-user request flow (Equipment and Recurring excluded), with breadcrumb and slide animations
-- **Export preview** — the file exactly as it will be exported, opening on the changed rows (old value crossed out above the new one) with summary counts and an Export button; Builder has **Asset Template / Model / Task** tabs; columns have vertical lines and can be resized
+- **Export preview** — the file exactly as it will be exported, opening on the changed rows (old value crossed out above the new one) with summary counts and an Export button; Builder has **Asset Template / Model / Task** tabs; Model, Task and Editor show the main columns plus any that changed; columns have vertical lines, can be resized, and the last one fills to the edge
 - **Undo** (button or **Ctrl+Z / Cmd+Z**) and **Escape** to cancel an edit
 - **Session history** — the clock button (top right) opens a panel listing every action with its status (Not exported / Exported / Undone / No file change) and a status line at the top; click an entry to jump to the item (it flashes briefly; on Click Preview, renamed items open there); pin it to the right side and resize it; **Export history** downloads a CSV (Exported, Description, Time) — also in the Export menu (download icon, top right)
 - **Show deleted items** switch — off by default, hides deleted items (and everything under a deleted parent) from the tree
 - **Safety prompts** — red confirm for deletes, confirm before Start over with unexported changes, and a warning when closing the tab
-- **Naming rules** — new names use letters, numbers and spaces only; duplicate names on the same path are allowed after a confirmation
+- **Naming rules** — model names use letters, numbers, spaces and / \ &; Builder task names also allow - ( ) , . '; duplicate names on the same path are allowed after a confirmation
 - **Keyboard support** for uploads, tabs, the tree, menus and pop-ups; screen-reader labels
 - Light / dark theme (meets WCAG AA contrast in both)
 
@@ -103,6 +103,7 @@ Editor works on a Workzone asset data export (Spaces file, `AssetData*.xlsx`), f
 
 | Version | Date | Notes |
 |---|---|---|
+| 1.4.1 | 2026-10-16 | Tree picker for Editor Move to…, export preview column fill and faster All rows, main + changed columns in Editor preview, / \ & allowed in names, RENAMED tag removed |
 | 1.4.0 | 2026-10-16 | Export preview tabs for all three files, Model ⋮ menu on the asset page, Edit NTE / Priority, standard export formatting, History highlight, new sample baseline |
 | 1.3.2 | 2026-10-15 | Export moved to an icon next to History, export messages as pop-ups, fixed multi-select bar layout, drawn ⋯/⋮ icons |
 | 1.3.1 | 2026-10-14 | Removed the file-count labels from the mode switch |

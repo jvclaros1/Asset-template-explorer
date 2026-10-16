@@ -711,6 +711,18 @@
   .dest-item.selected{ background: var(--bg-selected); box-shadow: inset 3px 0 0 var(--accent); }
   .dest-item .dest-parent{ display:block; font-family: var(--font-mono); font-size:10.5px; color: var(--text-muted); margin-bottom:2px; word-break:break-word; }
   .dest-empty{ padding:14px 12px; font-size:13px; color: var(--text-muted); }
+  .dest-tree, .dest-tree ul{ list-style:none; margin:0; padding:0; }
+  .dest-tree{ padding:4px 0; }
+  .dest-row{ display:flex; align-items:center; gap:2px; padding-right:8px; }
+  .dest-twisty, .dest-twisty-space{ width:22px; height:22px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; }
+  .dest-twisty{ background:none; border:none; border-radius:4px; color: var(--text-muted); cursor:pointer; padding:0; }
+  .dest-twisty:hover{ background: var(--bg-hover); color: var(--text); }
+  .dest-twisty svg{ width:13px; height:13px; transition: transform .15s ease; }
+  .dest-twisty.open svg{ transform: rotate(90deg); }
+  .dest-tree .dest-item{ flex:1; min-width:0; border:none; border-radius:5px; padding:6px 8px; }
+  .dest-tree .dest-item.disabled{ color: var(--text-muted); cursor:default; }
+  .dest-tree .dest-item.disabled:hover{ background:none; }
+  .dest-note{ font-family: var(--font-mono); font-size:10.5px; color: var(--text-muted); margin-left:6px; }
   .tag.space{ color: var(--text); border:1px solid var(--border); font-weight:500; }
   li.node.ghost > .row .node-label{ text-decoration: line-through; color: var(--text-muted); }
 
@@ -822,6 +834,12 @@
   .col-resize:hover::after, .col-resize:focus-visible::after, body.col-resizing .col-resize.active::after{ background: var(--accent); }
   body.col-resizing{ cursor:col-resize; user-select:none; }
   table.xp-table.fixed{ table-layout:fixed; width:auto; }
+  table.xp-table.measuring{ width:auto; }
+  .xp-table-wrap .xp-head{ position:sticky; top:0; z-index:2; }
+  .xp-table-wrap .xp-head th{ position:relative; }
+  table.xp-table.xp-chunk{ content-visibility:auto; contain-intrinsic-size:auto 4800px; }
+  table.xp-table.xp-chunk tr:last-child td{ border-bottom:1px solid var(--border); }
+  table.xp-table.xp-chunk:last-child tr:last-child td{ border-bottom:none; }
   table.xp-table.fixed td, table.xp-table.fixed th{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
   .xp-tabs{ display:flex; gap:4px; border-bottom:1px solid var(--border); margin:0 0 14px; }
   .xp-tabs button{ font-family: var(--font-sans); font-size:13px; font-weight:600; color: var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; padding:8px 12px; cursor:pointer; }
@@ -1160,7 +1178,6 @@
           <div class="legend-row"><span class="tag new" style="margin-left:0">NEW</span><span class="legend-copy"><strong>Added</strong> &mdash; new row, Action = Add</span></div>
           <div class="legend-row"><span class="lock-icon" id="legend-lock" style="margin-left:0"></span><span class="legend-copy"><strong>Locked</strong> &mdash; no changes allowed, including everything under it. Recurring and Engineering models, and Equipment next to Recurring, are locked when the file loads.</span></div>
           <div class="legend-row"><span class="tag moved" style="margin-left:0">MOVED</span><span class="legend-copy"><strong>Moved</strong> &mdash; deleted and re-added in the same space with the same values, gets a new ID</span></div>
-          <div class="legend-row"><span class="tag renamed" style="margin-left:0">RENAMED</span><span class="legend-copy"><strong>Renamed</strong> &mdash; Name updated, same ID</span></div>
         </details>
       </div>
       <div class="tree-scroll"><ul class="tree" id="ed-tree-root"></ul></div>
@@ -1324,7 +1341,7 @@ window.ATEHistory = (function(){
 
   // ---------------- shared state ----------------
   var STATE = { asset: null, model: null, task: null };
-  var APP_VERSION = '1.4.0';
+  var APP_VERSION = '1.4.1';
   var CURRENT = null; // { tree, models, tasks, nodeIndex }
   var selectedNode = null;
   var changesCount = 0;
@@ -1965,10 +1982,10 @@ window.ATEHistory = (function(){
     titleEl.addEventListener('blur', function(){
       if (consumeCancel(titleEl)) return;
       commitEdit(titleEl, function(){ return node.name; }, function(newVal){
-        if (!/^[A-Za-z0-9 ]+$/.test(newVal)){
+        if (!/^[A-Za-z0-9 \/\\&]+$/.test(newVal)){
           titleEl.textContent = node.name;
           var errEl = document.getElementById('b-edit-error');
-          if (errEl) errEl.textContent = 'Names can only use letters, numbers and spaces \u2014 no special characters.';
+          if (errEl) errEl.textContent = 'Names can only use letters, numbers, spaces and / \\ & \u2014 no other special characters.';
           return;
         }
         var dupSibling = node.parentNode && (node.parentNode.children || []).some(function(c){
@@ -2004,6 +2021,12 @@ window.ATEHistory = (function(){
         if (consumeCancel(el)) return;
         var val = (el.textContent || '').replace(/\s+/g, ' ').trim();
         if (!val || val === t.text){ el.textContent = t.text; return; }
+        if (!/^[A-Za-z0-9 \/\\&\-(),.']+$/.test(val)){
+          el.textContent = t.text;
+          var tErr = document.getElementById('b-edit-error');
+          if (tErr) tErr.textContent = 'Task names can only use letters, numbers, spaces and / \\ & - ( ) , . \' \u2014 no other special characters.';
+          return;
+        }
         confirmIfShared(node.model, function(){
           var prev = t.text;
           var setText = function(v){
@@ -2580,7 +2603,9 @@ window.ATEHistory = (function(){
     model: { label: 'Model', file: 'ModelTemplate.xlsx', sub: 'Model &mdash; the rows exactly as they&rsquo;ll be written to ModelTemplate.xlsx. Main columns are shown, plus any column that changed.', essential: ['ID', 'Action', 'Name', 'Type', 'Public'] },
     task:  { label: 'Task', file: 'TaskTemplate.xlsx', sub: 'Task &mdash; the rows exactly as they&rsquo;ll be written to TaskTemplate.xlsx. Main columns are shown, plus any column that changed.', essential: ['ID', 'Action', 'ModelName', 'Text', 'PM', 'RM', 'CM', 'RS'] }
   };
+  var xpCache = {};      // rows per file, worked out once each time the preview opens (nothing can change while it's open)
   function xpRowsFor(kind){
+    if (xpCache[kind]) return xpCache[kind];
     var st = STATE[kind], idx = st.colIndex, header = st.aoa[0];
     var out = [], n = 0;
     st.aoa.slice(2).forEach(function(row, i){
@@ -2605,6 +2630,7 @@ window.ATEHistory = (function(){
       }
       out.push({ excelRow: n + 2, row: row, orig: orig, changedCols: changedCols, flags: flags });
     });
+    xpCache[kind] = out;
     return out;
   }
   function xpRows(){ return xpRowsFor('asset'); }
@@ -2643,10 +2669,10 @@ window.ATEHistory = (function(){
     });
     var monoCols = kind === 'asset' ? [idx.Path, idx.ID] : [idx.ID];
     var wideCols = kind === 'model' ? [idx.Name] : (kind === 'task' ? [idx.ModelName, idx.Text] : []);
-    var html = '<table class="xp-table"><thead><tr>' + cols.map(function(x){ return '<th>' + escapeHtml(x.h) + '</th>'; }).join('') + '</tr></thead><tbody>';
-    list.forEach(function(r){
+    var head = '<tr>' + cols.map(function(x){ return '<th>' + escapeHtml(x.h) + '</th>'; }).join('') + '</tr>';
+    var rowHtml = function(r){
       var isDel = r.row[idx.Action] === 'Delete';
-      html += '<tr class="' + (isDel ? 'is-del' : (r.changedCols.length ? 'is-chg' : '')) + '">';
+      var h = '<tr class="' + (isDel ? 'is-del' : (r.changedCols.length ? 'is-chg' : '')) + '">';
       cols.forEach(function(x){
         var v = r.row[x.c], o = r.orig[x.c];
         var cls = monoCols.indexOf(x.c) !== -1 ? ' class="mono"' : (wideCols.indexOf(x.c) !== -1 ? ' class="wrap"' : '');
@@ -2656,13 +2682,11 @@ window.ATEHistory = (function(){
         } else {
           cell = (v == null || v === '') ? '' : escapeHtml(v);
         }
-        html += '<td' + cls + '>' + cell + '</td>';
+        h += '<td' + cls + '>' + cell + '</td>';
       });
-      html += '</tr>';
-    });
-    wrap.innerHTML = html + '</tbody></table>';
-    wrap.scrollTop = 0; wrap.scrollLeft = 0;
-    ATEColResize.attach(wrap, 'b-' + kind);
+      return h + '</tr>';
+    };
+    ATEColResize.render(wrap, 'b-' + kind, head, list.length, function(i){ return rowHtml(list[i]); }, ATEColResize.sample(list, cols.map(function(x){ return x.c; }), function(r, c){ return [r.row[c], r.orig[c]]; }));
   }
   ['asset', 'model', 'task'].forEach(function(k){
     var b = document.getElementById('xp-tab-' + k);
@@ -2678,64 +2702,105 @@ window.ATEHistory = (function(){
   // ---------------- Column widths in the export previews (kept for the session) ----------------
   window.ATEColResize = (function(){
     var store = {};
-    var MIN = 60;
-    function applyFixed(table, widths){
-      var ths = table.querySelectorAll('thead th');
-      var cg = table.querySelector('colgroup');
-      if (!cg){ cg = document.createElement('colgroup'); table.insertBefore(cg, table.firstChild); }
-      cg.innerHTML = Array.prototype.map.call(ths, function(th, i){ return '<col style="width:' + widths[i] + 'px">'; }).join('');
-      table.style.width = widths.reduce(function(a, b){ return a + b; }, 0) + 'px';
-      table.classList.add('fixed');
+    var MIN = 60, MAX = 1200, CAP = 420;
+    var FIRST = 60, CHUNK = 80;
+    // Column widths are fixed; when they add up to less than the table area, the last column takes the rest.
+    // The header and each block of rows are separate tables that share the same column widths.
+    function applyFixed(wrap, widths, availKnown){
+      var sum = widths.reduce(function(a, b){ return a + b; }, 0);
+      var avail = availKnown != null ? availKnown : wrap.clientWidth;
+      var ws = widths.slice();
+      if (avail > sum && ws.length) ws[ws.length - 1] += avail - sum;
+      wrap._colHtml = ws.map(function(w){ return '<col style="width:' + w + 'px">'; }).join('');
+      wrap._tableW = Math.max(sum, avail) + 'px';
+      wrap._base = widths;
+      wrap.querySelectorAll('table.fixed').forEach(function(t){ t.querySelector('colgroup').innerHTML = wrap._colHtml; t.style.width = wrap._tableW; });
     }
-    function attach(wrap, key){
-      var table = wrap.querySelector('table.xp-table'); if (!table) return;
+    // Rows to measure natural widths on: the first rows plus, for each column, the row with the longest value
+    function sample(list, colIdx, values){
+      var pick = {}, n = Math.min(list.length, 40), i;
+      for (i = 0; i < n; i++) pick[i] = true;
+      colIdx.forEach(function(c){
+        var best = -1, bestLen = -1;
+        for (var k = 0; k < list.length; k++){
+          var len = values(list[k], c).reduce(function(m, v){ return Math.max(m, v == null ? 0 : String(v).length); }, 0);
+          if (len > bestLen){ bestLen = len; best = k; }
+        }
+        if (best >= 0) pick[best] = true;
+      });
+      return Object.keys(pick).map(Number).sort(function(a, b){ return a - b; });
+    }
+    // rows are built only when they're added, so a long list costs nothing up front
+    function render(wrap, key, headHtml, total, rowAt, sampleIdx){
       var mem = store[key] || (store[key] = {});
-      var ths = Array.prototype.slice.call(table.querySelectorAll('thead th'));
-      var names = ths.map(function(th){ return th.textContent; });
-      // natural widths first, then any width the user set this session
-      var widths = ths.map(function(th, i){ return mem[names[i]] || Math.ceil(th.getBoundingClientRect().width); });
-      if (Object.keys(mem).length) applyFixed(table, widths);
+      var token = wrap._renderToken = (wrap._renderToken || 0) + 1;
+      var rowsBetween = function(a, b){ var out = ''; for (var k = a; k < Math.min(b, total); k++) out += rowAt(k); return out; };
+      // 1) natural widths, measured on a small sample (fast)
+      wrap.innerHTML = '<table class="xp-table measuring"><thead>' + headHtml + '</thead><tbody>' + sampleIdx.map(function(i){ return rowAt(i); }).join('') + '</tbody></table>';
+      var mths = Array.prototype.slice.call(wrap.querySelectorAll('thead th'));
+      var names = mths.map(function(th){ return th.textContent; });
+      var widths = mths.map(function(th, i){ return mem[names[i]] || Math.max(MIN, Math.min(CAP, Math.ceil(th.getBoundingClientRect().width))); });
+      var avail = wrap.clientWidth;          // read now, while layout is already up to date
+      wrap.scrollTop = 0; wrap.scrollLeft = 0;
+      // 2) header + first block of rows straight away; later blocks are added in the background and
+      //    only laid out when scrolled into view, so even thousands of rows open without a freeze
+      var block = function(a, b){ return '<table class="xp-table fixed xp-chunk" role="presentation"><colgroup></colgroup><tbody>' + rowsBetween(a, b) + '</tbody></table>'; };
+      wrap.innerHTML = '<table class="xp-table fixed xp-head"><colgroup></colgroup><thead>' + headHtml + '</thead></table>' + block(0, FIRST);
+      applyFixed(wrap, widths, avail);
+      var next = FIRST;
+      var later = function(fn){ requestAnimationFrame(function(){ setTimeout(fn, 0); }); };   // after the browser has drawn
+      later(function more(){
+        if (wrap._renderToken !== token || next >= total) return;
+        var html = block(next, next + CHUNK); next += CHUNK;
+        wrap.insertAdjacentHTML('beforeend', html.replace(/<colgroup><\/colgroup>/g, '<colgroup>' + wrap._colHtml + '</colgroup>').replace(/<table class="xp-table fixed xp-chunk"/g, '<table style="width:' + wrap._tableW + '" class="xp-table fixed xp-chunk"'));
+        later(more);
+      });
+      var ths = Array.prototype.slice.call(wrap.querySelectorAll('.xp-head thead th'));
       ths.forEach(function(th, i){
         var h = document.createElement('span');
         h.className = 'col-resize'; h.tabIndex = 0;
         h.setAttribute('role', 'separator'); h.setAttribute('aria-orientation', 'vertical');
         h.setAttribute('aria-label', 'Resize column ' + names[i]);
-        h.setAttribute('aria-valuemin', MIN); h.setAttribute('aria-valuemax', 1200); h.setAttribute('aria-valuenow', widths[i]);
+        h.setAttribute('aria-valuemin', MIN); h.setAttribute('aria-valuemax', MAX); h.setAttribute('aria-valuenow', widths[i]);
         h.title = 'Drag to resize';
         th.appendChild(h);
         function set(w){
-          widths[i] = Math.max(MIN, Math.min(1200, Math.round(w)));
+          widths[i] = Math.max(MIN, Math.min(MAX, Math.round(w)));
           mem[names[i]] = widths[i];
-          // the first resize locks every column at its current width so only this one changes
+          // the first resize keeps every column at its current width so only this one changes
           ths.forEach(function(t, j){ if (!mem[names[j]]) mem[names[j]] = widths[j]; });
-          applyFixed(table, widths);
+          applyFixed(wrap, widths);
           h.setAttribute('aria-valuenow', widths[i]);
         }
         h.addEventListener('mousedown', function(e){
           e.preventDefault(); e.stopPropagation();
-          var x0 = e.clientX, w0 = th.getBoundingClientRect().width;
+          var x0 = e.clientX, w0 = widths[i];
           document.body.classList.add('col-resizing'); h.classList.add('active');
           function move(ev){ set(w0 + ev.clientX - x0); }
           function up(){ document.body.classList.remove('col-resizing'); h.classList.remove('active'); document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); }
           document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
         });
         h.addEventListener('keydown', function(e){
-          if (e.key === 'ArrowRight'){ e.preventDefault(); set(th.getBoundingClientRect().width + 20); }
-          if (e.key === 'ArrowLeft'){ e.preventDefault(); set(th.getBoundingClientRect().width - 20); }
+          if (e.key === 'ArrowRight'){ e.preventDefault(); set(widths[i] + 20); }
+          if (e.key === 'ArrowLeft'){ e.preventDefault(); set(widths[i] - 20); }
         });
         h.addEventListener('click', function(e){ e.stopPropagation(); });
       });
     }
+    // keep the last column reaching the edge when the window (or the pinned History panel) changes size
+    var refit = function(){ document.querySelectorAll('.xp-table-wrap').forEach(function(w){ if (w._base && w.offsetParent) applyFixed(w, w._base); }); };
+    window.addEventListener('resize', refit);
+    if (window.ResizeObserver){ var ro = new ResizeObserver(refit); document.querySelectorAll('.xp-table-wrap').forEach(function(w){ ro.observe(w); }); }
     function reset(prefix){ Object.keys(store).forEach(function(k){ if (k.indexOf(prefix) === 0) delete store[k]; }); }
-    return { attach: attach, reset: reset };
+    return { render: render, sample: sample, reset: reset };
   })();
 
   document.getElementById('export-preview-btn').addEventListener('click', function(){
     if (!CURRENT) return;
-    xpMode = 'changed'; xpTab = 'asset';
+    xpMode = 'changed'; xpTab = 'asset'; xpCache = {};
     document.getElementById('xp-export-btn').disabled = document.getElementById('export-btn').disabled;
-    renderExportPreview();
     switchView('xpreview');
+    renderExportPreview();
   });
   document.getElementById('xp-show-changed').addEventListener('click', function(){ xpMode = 'changed'; renderExportPreview(); });
   document.getElementById('xp-show-all').addEventListener('click', function(){ xpMode = 'all'; renderExportPreview(); });
@@ -3254,7 +3319,7 @@ window.ATEHistory = (function(){
     name = (name || '').trim();
     if (!name) return 'Name is required.';
     if (name.length > NAME_MAX) return 'Name can be at most ' + NAME_MAX + ' characters (' + name.length + ' now).';
-    if (!keepExisting && !/^[A-Za-z0-9 ]+$/.test(name)) return 'Names can only use letters, numbers and spaces \u2014 no special characters.';
+    if (!keepExisting && !/^[A-Za-z0-9 \/\\&]+$/.test(name)) return 'Names can only use letters, numbers, spaces and / \\ & \u2014 no other special characters.';
     if (name.indexOf('>') !== -1) return 'Name can’t contain “>” — it’s the path separator.';
     if ((currentPath(parent) + '>' + name).length > PATH_MAX) return 'The full path would be longer than ' + PATH_MAX + ' characters.';
     return null;
@@ -3432,7 +3497,6 @@ window.ATEHistory = (function(){
     if (n.locked) t += '<span class="lock-icon" title="Locked">' + lockSvg() + '</span>';
     if (n.isNew) t += '<span class="tag new">NEW</span>';
     if (n.moved) t += '<span class="tag moved">MOVED</span>';
-    if (!n.isNew && n.name !== n.origName) t += '<span class="tag renamed">RENAMED</span>';
     return t;
   }
 
@@ -3829,15 +3893,34 @@ window.ATEHistory = (function(){
     });
     var chosen = null;
     moveDupOk = null;
-    function listHtml(filter){
+    // Tree of the space, like the sidebar. Items being moved (and what's under them) aren't shown;
+    // deleted items are left out; the current location and locked items are shown but can't be picked.
+    var isDest = {}; dests.forEach(function(d){ isDest[d.uid] = true; });
+    var hiddenSet = function(d){ return isDeleted(d) || nodes.some(function(n){ return isWithin(d, n); }); };
+    var kidsOf = function(d){ return d.children.filter(function(c){ return !hiddenSet(c); }); };
+    var open = {}; open[space.uid] = true;
+    nodes.forEach(function(n){ ancestors(n).forEach(function(a){ open[a.uid] = true; }); });   // start at where the item is now
+    var currentParents = {}; nodes.forEach(function(n){ currentParents[n.parent.uid] = true; });
+    function treeHtml(filter){
       var f = (filter || '').toLowerCase();
-      var items = dests.filter(function(d){ return !f || currentPath(d).toLowerCase().indexOf(f) !== -1; }).slice(0, 300);
-      if (!items.length) return '<div class="dest-empty">No matching locations in ' + esc(space.name) + '.</div>';
-      return items.map(function(d){
-        var parentPath = ancestors(d).map(function(a){ return a.name; }).join(' > ');
-        return '<button type="button" class="dest-item' + (chosen === d ? ' selected' : '') + '" data-uid="' + d.uid + '"><span class="dest-parent">' + esc(parentPath) + '</span>' + esc(d.name) + '</button>';
-      }).join('');
+      var match = function(d){ return d.name.toLowerCase().indexOf(f) !== -1; };
+      var hasMatch = function(d){ return match(d) || kidsOf(d).some(hasMatch); };
+      function nodeHtml(d, depth){
+        if (f && !hasMatch(d)) return '';
+        var kids = kidsOf(d), isOpen = f ? true : !!open[d.uid];
+        var can = isDest[d.uid], here = currentParents[d.uid] && nodes.every(function(n){ return n.parent === d; });
+        var note = here ? ' <span class="dest-note">current location</span>' : (isLocked(d) ? ' <span class="dest-note">locked</span>' : '');
+        var h = '<li class="dest-node" role="treeitem" aria-level="' + (depth + 1) + '"' + (kids.length ? ' aria-expanded="' + isOpen + '"' : '') + '>' +
+          '<div class="dest-row" style="padding-left:' + (8 + depth * 18) + 'px">' +
+          (kids.length ? '<button type="button" class="dest-twisty' + (isOpen ? ' open' : '') + '" data-toggle="' + d.uid + '" aria-label="' + (isOpen ? 'Collapse ' : 'Expand ') + esc(d.name) + '" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5L10.5 8L6 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' : '<span class="dest-twisty-space"></span>') +
+          '<button type="button" class="dest-item' + (chosen === d ? ' selected' : '') + (can ? '' : ' disabled') + '" data-uid="' + d.uid + '"' + (can ? '' : ' aria-disabled="true"') + '>' + esc(d.name) + note + '</button></div>';
+        if (kids.length && isOpen) h += '<ul role="group">' + kids.map(function(c){ return nodeHtml(c, depth + 1); }).join('') + '</ul>';
+        return h + '</li>';
+      }
+      var body = nodeHtml(space, 0);
+      return body ? '<ul class="dest-tree" role="tree" aria-label="New location">' + body + '</ul>' : '<div class="dest-empty">No matching locations in ' + esc(space.name) + '.</div>';
     }
+    var listHtml = treeHtml;
     var title = nodes.length === 1 ? 'Move \u201c' + nodes[0].name + '\u201d' : 'Move ' + nodes.length + ' selected models';
     openModal({
       title: title,
@@ -3846,18 +3929,43 @@ window.ATEHistory = (function(){
       body:
         (originals ? '<p class="modal-warn">An existing record&rsquo;s path can&rsquo;t be changed, so the tool will <strong>delete ' + originals + ' record' + (originals === 1 ? '' : 's') + '</strong> at the old location and <strong>re-add ' + (originals === 1 ? 'it' : 'them') + '</strong> here with ' + (originals === 1 ? 'a new ID' : 'new IDs') + ', keeping all ' + (originals === 1 ? 'its' : 'their') + ' other values. Work-order history stays with the old records.</p>' : '') +
         '<p class="modal-path">Moves stay within the space: ' + esc(currentPath(space).replace(/>/g, ' > ')) + '</p>' +
-        '<div class="field"><label for="move-filter">New location</label><input id="move-filter" type="text" placeholder="Filter locations\u2026" autocomplete="off"></div>' +
+        '<div class="field"><label for="move-filter">New location</label><input id="move-filter" type="text" placeholder="Filter by name\u2026" autocomplete="off"></div>' +
         '<div class="dest-list" id="dest-list">' + listHtml('') + '</div>' +
         '<p class="modal-error" id="modal-err"></p>',
       onOpen: function(){
         var input = $('move-filter'), list = $('dest-list');
-        input.addEventListener('input', function(){ list.innerHTML = listHtml(input.value); });
+        input.addEventListener('input', function(){ list.innerHTML = listHtml(input.value); });   // while filtering, matches are shown with their parents opened
+        var redraw = function(focusUid){
+          list.innerHTML = listHtml(input.value);
+          if (focusUid){ var fb = list.querySelector('.dest-item[data-uid="' + focusUid + '"]'); if (fb) fb.focus(); }
+        };
         list.addEventListener('click', function(e){
+          var tg = e.target.closest('[data-toggle]');
+          if (tg){ var u = tg.getAttribute('data-toggle'); open[u] = !open[u]; redraw(u); return; }
           var b = e.target.closest('.dest-item'); if (!b) return;
+          if (b.classList.contains('disabled')){
+            var dn = T.byUid[b.getAttribute('data-uid')];
+            if (kidsOf(dn).length){ open[dn.uid] = !open[dn.uid]; redraw(dn.uid); }       // clicking a name you can't pick just opens/closes it
+            return;
+          }
           chosen = T.byUid[b.getAttribute('data-uid')];
           list.querySelectorAll('.dest-item').forEach(function(x){ x.classList.toggle('selected', x === b); });
           modalError(''); var me = $('modal-err'); if (me) me.className = 'modal-error';
           moveDupOk = null; $('modal-confirm').textContent = 'Move here';
+        });
+        // keyboard: ↑/↓ move between names, → opens, ← closes (or goes to the parent)
+        list.addEventListener('keydown', function(e){
+          var b = e.target.closest('.dest-item'); if (!b) return;
+          var all = Array.prototype.slice.call(list.querySelectorAll('.dest-item')), k = all.indexOf(b);
+          var d = T.byUid[b.getAttribute('data-uid')];
+          if (e.key === 'ArrowDown' && all[k + 1]){ e.preventDefault(); all[k + 1].focus(); }
+          else if (e.key === 'ArrowUp' && all[k - 1]){ e.preventDefault(); all[k - 1].focus(); }
+          else if (e.key === 'ArrowRight' && kidsOf(d).length && !open[d.uid]){ e.preventDefault(); open[d.uid] = true; redraw(d.uid); }
+          else if (e.key === 'ArrowLeft'){
+            e.preventDefault();
+            if (kidsOf(d).length && open[d.uid] && !input.value){ open[d.uid] = false; redraw(d.uid); }
+            else if (d !== space && d.parent){ var pb = list.querySelector('.dest-item[data-uid="' + d.parent.uid + '"]'); if (pb) pb.focus(); }
+          }
         });
         input.focus();
       },
@@ -4127,7 +4235,7 @@ window.ATEHistory = (function(){
     });
     var changed = rows.filter(function(r){ return r.changed; });
     var count = function(f){ return rows.filter(function(r){ return r.flags.indexOf(f) !== -1; }).length; };
-    $('ed-xp-sub').innerHTML = 'Spaces file &mdash; the rows exactly as they&rsquo;ll be written to ' + esc((S.spaces.fileName || 'AssetData_Spaces.xlsx').replace(/\.xlsx$/i, '')) + '_edited.xlsx.';
+    $('ed-xp-sub').innerHTML = 'Spaces file &mdash; the rows exactly as they&rsquo;ll be written to ' + esc((S.spaces.fileName || 'AssetData_Spaces.xlsx').replace(/\.xlsx$/i, '')) + '_edited.xlsx. Main columns are shown, plus any column that changed.';
     $('ed-xp-summary').innerHTML =
       '<span class="xp-chip"><b>' + rows.length.toLocaleString() + '</b> rows in file</span>' +
       '<span class="xp-chip"><b>' + changed.length.toLocaleString() + '</b> changed</span>' +
@@ -4142,12 +4250,15 @@ window.ATEHistory = (function(){
     var list = edXpMode === 'changed' ? changed : rows;
     var wrap = $('ed-xp-table-wrap');
     if (!list.length){ wrap.innerHTML = '<div class="xp-empty">No changes yet &mdash; the Spaces file will export exactly as it was loaded.</div>'; return; }
-    var cols = header.map(function(h, c){ return { h: h, c: c }; }).filter(function(x){ return x.h; });
+    // main columns plus any column that changed (same as Builder's Model and Task tabs)
+    var MAIN = ['ID', 'Action', 'WorkZoneNumber', 'Path', 'Name', 'Model'];
+    var anyChanged = {}; changed.forEach(function(r){ r.changedCols.forEach(function(c){ anyChanged[c] = true; }); });
+    var cols = header.map(function(h, c){ return { h: h, c: c }; }).filter(function(x){ return x.h && (MAIN.indexOf(x.h) !== -1 || anyChanged[x.c]); });
     var wide = [col.Path, col.Name, col.Model];
-    var html = '<table class="xp-table"><thead><tr>' + cols.map(function(x){ return '<th>' + esc(x.h) + '</th>'; }).join('') + '</tr></thead><tbody>';
-    list.forEach(function(r){
+    var head = '<tr>' + cols.map(function(x){ return '<th>' + esc(x.h) + '</th>'; }).join('') + '</tr>';
+    var rowHtml = function(r){
       var isDel = r.row[col.Action] === 'Delete';
-      html += '<tr class="' + (isDel ? 'is-del' : (!r.orig ? 'is-add' : (r.changedCols.length ? 'is-chg' : ''))) + '">';
+      var h = '<tr class="' + (isDel ? 'is-del' : (!r.orig ? 'is-add' : (r.changedCols.length ? 'is-chg' : ''))) + '">';
       cols.forEach(function(x){
         var v = r.row[x.c], cls = x.c === col.Path ? ' class="mono"' : (wide.indexOf(x.c) !== -1 ? ' class="wrap"' : '');
         var cell;
@@ -4155,18 +4266,16 @@ window.ATEHistory = (function(){
           var o = r.orig[x.c];
           cell = '<span class="xp-old">' + (norm(o) === '' ? '(blank)' : esc(o)) + '</span><span class="xp-new' + (x.c === col.Action && v === 'Delete' ? ' xp-act-del' : '') + '">' + (norm(v) === '' ? '(blank)' : esc(v)) + '</span>';
         } else cell = norm(v) === '' ? '' : esc(v);
-        html += '<td' + cls + '>' + cell + '</td>';
+        h += '<td' + cls + '>' + cell + '</td>';
       });
-      html += '</tr>';
-    });
-    wrap.innerHTML = html + '</tbody></table>';
-    wrap.scrollTop = 0; wrap.scrollLeft = 0;
-    if (window.ATEColResize) ATEColResize.attach(wrap, 'ed');
+      return h + '</tr>';
+    };
+    ATEColResize.render(wrap, 'ed', head, list.length, function(i){ return rowHtml(list[i]); }, ATEColResize.sample(list, cols.map(function(x){ return x.c; }), function(r, c){ return [r.row[c], r.orig ? r.orig[c] : null]; }));
   }
   $('ed-export-preview-btn').addEventListener('click', function(){
     if (!T) return;
     edXpMode = 'changed'; $('ed-xp-note').textContent = '';
-    renderEdExportPreview(); switchView('xpreview');
+    switchView('xpreview'); renderEdExportPreview();
   });
   $('ed-xp-show-changed').addEventListener('click', function(){ edXpMode = 'changed'; renderEdExportPreview(); });
   $('ed-xp-show-all').addEventListener('click', function(){ edXpMode = 'all'; renderEdExportPreview(); });

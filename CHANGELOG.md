@@ -4,6 +4,20 @@ All notable changes to the **Asset Template Explorer**.
 
 ---
 
+## [1.4.1] — 2026-10-16
+
+### ✨ Added
+- **Editor — Move to… uses a tree**: pick the new location from a tree of the space (like the sidebar), opened at the item's current location. The current location and locked items can't be picked; items being moved (and what's under them) aren't shown. The filter box and keyboard (↑ ↓ → ←) work in the tree. Also used by **Move selected**
+
+### 🔄 Changed
+- **Export preview columns**: the last column always reaches the right edge of the table (also when the window or the pinned History panel changes size); columns start at a width that fits their content
+- **Export preview "All rows" opens without a lag**: the first rows show straight away and the rest load in the background
+- **Editor export preview** shows the main columns (ID, Action, WorkZoneNumber, Path, Name, Model) plus any column that changed, like Builder's Model and Task tabs. The exported file still has every column
+- **Naming rules**: model names (both modes) can also use **/ \ &**; Builder task names can use letters, numbers, spaces and **/ \ & - ( ) , . '**
+- Editor: the **RENAMED** tag is removed from the tree and Legend (renames show in History and the export preview)
+
+---
+
 ## [1.4.0] — 2026-10-16
 
 ### 🔑 Highlights
